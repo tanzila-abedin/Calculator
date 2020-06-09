@@ -1,73 +1,137 @@
-*, *::before, *::after {
-     box-sizing: border-box;
-     font-family: Georgia, 'Times New Roman', Times, serif;
-     font-weight: normal;
-    
- }
+class Calculator {
+    constructor(previousOperandTextElement, currentOperandTextElement){
+        this.previousOperandTextElement = previousOperandTextElement;
+        this.currentOperandTextElement = currentOperandTextElement;
+        this.clear()
+    }  
+
+ clear (){
+     this.currentOperand = '';
+     this.previousOperand = '';
+     this.operation = undefined;
+
+ } 
  
-     
+ delete(){ 
+     this.currentOperand = this.currentOperand.toString().slice(0,-1);
 
+ }
 
- body{
-     padding: inherit;
-     margin: inherit;
-     background: linear-gradient(to right, skyblue, #f1f3f2);
+ appendNumber(number){
+     if (number === '.' && this.currentOperand.includes('.')) return
+     this.currentOperand = this.currentOperand.toString() + number.toString();
 
+ }
+
+ chooseOperation(operation){
+     if (this.currentOperand === '')return
+     if (this.previousOperand !== '') {
+         this.compute()
+    }
+ 
+   this.operation = operation;
+   this.previousOperand = this.currentOperand;
+   this.currentOperand = '';
+
+ }
+
+ compute(){
+    let computation;
+    const prev = parseFloat(this.previousOperand);
+    const current = parseFloat (this.currentOperand);
+    if (isNaN(prev) || isNaN(current)) return  
+    switch (this.operation) {
+      case '+':
+         computation =prev + current;
+         break
+      case '-':
+         computation =prev - current;
+         break
+      case '*':
+         computation =prev * current;
+         break
+      case '÷':
+         computation =prev / current;
+         break
+
+      default: 
+       return ;
     } 
-    
 
+    this.currentOperand = computation;
+    this.operation = undefined;
+    this.previousOperand = '' ;
+ } 
 
-.calculator-grid {
-    display: grid;
-    justify-content: center;
-    align-content: center;
-    min-height: 100vh;
-    grid-template-columns: repeat(5,80px);
-    grid-template-rows: minmax(120px,auto) repeat(4, 90px);
+ getDisplayNumber(number) {
+     const stringNumber = number.toString();
+     const intergerDigits = parseFloat(stringNumber.split('.')[0]);
+     const decimalDigits = stringNumber.split('.')[1];
+     let intergerDisplay ;
+     if (isNaN(intergerDigits)){
+         intergerDisplay = '' ;
+     } else {
+         intergerDisplay= intergerDigits.toLocaleString('en',{
+             maximumFractionDigits : 0 
+         })
+     }
+    if (decimalDigits != null) {
+        return `${intergerDisplay}.${decimalDigits}`;
+    }else {
+        return intergerDisplay;
+    }
+ }
+
+ updateDisplay(){
+     this.currentOperandTextElement.innerText = 
+         this.getDisplayNumber(this.currentOperand)
+     if (this.operation != null) {
+         this.previousOperandTextElement.innerText =
+         `${this.getDisplayNumber(this.previousOperand)} ${this.operation}` ;
+  } else{
+    this.previousOperandTextElement.innerText = '' ;  
+  }
+ }
 }
 
-.calculator-grid > button {
-    cursor: pointer;
-    font-size: 2rem;
-    border: 1px solid rgba(255, 255, 255, 0.384);
-    outline: none;
-    background-color: rgba(214, 210, 210, 0.75);
-}
+const numberButtons = document.querySelectorAll(['[data-number]']);
+const operationButtons = document.querySelectorAll(['[data-operation]']);
+const equalsButton = document.querySelector('[data-equals]');
+const deleteButton = document.querySelector('[data-delete]');
+const allClearButton = document.querySelector('[data-all-clear]');
+const previousOperandTextElement = document.querySelector ('[data-previous-operand]');
+const currentOperandTextElement = document.querySelector ('[data-current-operand]');
 
-.calculator-grid > button:hover {
-    background-color: rgb(135, 206, 235);
+const calculator = new Calculator (previousOperandTextElement,currentOperandTextElement)
 
-}
+numberButtons.forEach(button => {
+    button.addEventListener('click',() => {
+        calculator.appendNumber(button.innerText)
+        calculator.updateDisplay()
+    })
+})
 
-.span-two {
-    grid-column: span 2;
-}
+operationButtons.forEach(button => {
+    button.addEventListener('click',() => {
+            calculator.chooseOperation(button.innerText)
+            calculator.updateDisplay()
+    })
+})
 
-.span-one {
-    grid-row: span 2;
-}
-.output {
-    grid-column: 1/-1;
-    background-color: rgba(58, 57, 57, 0.75);
-    display: flex ;
-    align-items: flex-end;
-    justify-content: space-around;
-    flex-direction: column;
-    padding: 10px;
-    word-wrap: break-word;
-    word-break: break-all;
-}
+equalsButton.addEventListener('click', button => {
+    calculator.compute()
+    calculator.updateDisplay()
+})
 
+allClearButton.addEventListener('click', button => {
+    calculator.clear()
+    calculator.updateDisplay()
+})
 
-.output .previous-operand {
-    color: rgba(255, 255, 255, .75);
-    font-size: 1.5rem;
-}
-
-.output .current-operand {
-    color: white;
-    font-size: 2.5rem;
-}
+deleteButton.addEventListener('click', button => {
+    calculator.delete()
+    calculator.updateDisplay()
+})
 
 
 
